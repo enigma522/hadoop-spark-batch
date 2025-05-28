@@ -1,0 +1,21 @@
+spark-submit  --jars /opt/spark-job/lib/postgresql-42.7.5.jar   /opt/spark-job/clean.py
+
+## spark
+
+spark-submit --packages org.mongodb.spark:mongo-spark-connector_2.12:10.4.1 /opt/spark-job/clean.py
+
+
+## hadoop
+
+hadoop fs -mkdir -p /data 
+
+hadoop fs -ls /data
+
+hadoop fs -put /data/job_data.csv /data/job_data.csv
+
+
+## mongodb
+
+docker exec -it mongodb mongosh -u admin -p admin --authenticationDatabase admin
+
+db.job_listings.find()

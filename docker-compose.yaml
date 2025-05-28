@@ -1,0 +1,65 @@
+
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    ports:
+      - "9870:9870"
+    environment:
+      - CLUSTER_NAME=test
+    volumes:
+      - hdfs_namenode:/hadoop/dfs/name
+      - ./data:/data
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode
+    environment:
+      - CLUSTER_NAME=test
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    volumes:
+      - hdfs_datanode:/hadoop/dfs/data
+    depends_on:
+      - namenode
+
+  spark:
+    image: bitnami/spark:latest
+    user: root
+    container_name: spark
+    environment:
+      - SPARK_MODE=master
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./spark-job:/opt/spark-job
+    depends_on:
+      - namenode
+      - datanode
+
+  spark-worker:
+    image: bitnami/spark:latest
+    container_name: spark-worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+    depends_on:
+      - spark
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: bigdata
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    restart: always
+
+volumes:
+  hdfs_namenode:
+  hdfs_datanode:
+  mongo_data:
